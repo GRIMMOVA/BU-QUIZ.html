@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elevator Systems Quiz</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .description {
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .question {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .question-number {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .options {
+            list-style: none;
+        }
+        .option {
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        .option.selected {
+            background: #d1ecf1;
+            border-color: #3498db;
+            font-weight: bold;
+        }
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        .explanation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            display: none;
+        }
+        .explanation.show {
+            display: block;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        button {
+            padding: 12px 25px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .results {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        .score {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .score-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #3498db;
+            display: block;
+            margin: 15px 0;
+        }
+        .restart-btn {
+            background: #2ecc71;
+            margin-top: 20px;
+        }
+        .restart-btn:hover {
+            background: #27ae60;
+        }
+        .progress-bar {
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: #3498db;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .question {
+                padding: 15px;
+            }
+            button {
+                padding: 10px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Elevator Systems Quiz</h1>
+            <p class="description">Test your knowledge of vertical transportation systems based on the lecture materials</p>
+        </header>
+
+        <div class="quiz-info">
+            <div>Total Questions: <span id="total-questions">50</span></div>
+            <div>Score: <span id="score">0</span>/50</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <div id="quiz-container">
+            <!-- Questions will be inserted here -->
+        </div>
+
+        <div class="navigation">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn">Next</button>
+        </div>
+
+        <div class="results" id="results">
+            <h2>Quiz Completed!</h2>
+            <div class="score">Your Score: <span class="score-value" id="final-score">0</span>/50</div>
+            <p id="performance-message"></p>
+            <button class="restart-btn" id="restart-btn">Take Quiz Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quiz questions data
+            const quizData = [
+                {
+                    question: "What does 'UTILITAS' represent in the enduring values of architecture?",
+                    options: ["To protect", "To nurture", "To transform", "To inspire"],
+                    answer: 1,
+                    explanation: "'UTILITAS' refers to the 'Good Life' value, which is about nurturing."
+                },
+                {
+                    question: "Which of the following is NOT a building system?",
+                    options: ["Superstructure", "Exterior Envelope", "Aesthetic Form", "Mechanical Systems"],
+                    answer: 2,
+                    explanation: "Aesthetic Form is part of the aesthetic value, not a building system."
+                },
+                {
+                    question: "What type of elevator is generally used in single-family residences?",
+                    options: ["Traction Elevator", "Hydraulic Elevator", "Pneumatic Elevator", "Climbing Elevator"],
+                    answer: 1,
+                    explanation: "Hydraulic elevators are commonly used in single-family residences due to their lower cost and simpler installation."
+                },
+                {
+                    question: "Which elevator type uses air pressure to move the cab?",
+                    options: ["Hydraulic Elevator", "Traction Elevator", "Pneumatic Elevator", "Climbing Elevator"],
+                    answer: 2,
+                    explanation: "Pneumatic elevators use air pressure differences to raise and lower the elevator cab."
+                },
+                {
+                    question: "What is the maximum travel distance for a conventional hydraulic elevator?",
+                    options: ["Approximately 20 feet", "Approximately 40 feet", "Approximately 60 feet", "Approximately 80 feet"],
+                    answer: 2,
+                    explanation: "Conventional hydraulic elevators have a maximum travel distance of approximately 60 feet."
+                },
+                {
+                    question: "Which type of traction elevator is considered superior due to efficiency and quieter operation?",
+                    options: ["Geared Traction Machine", "Gearless Traction Machine", "Roped Hydraulic", "Telescopic Hydraulic"],
+                    answer: 1,
+                    explanation: "Gearless traction machines are considered superior because they are more efficient, quieter, require less maintenance, and have longer life."
+                },
+                {
+                    question: "What is the typical counterweight percentage of an elevator's rated load?",
+                    options: ["Equal to empty car weight", "Empty car weight + 20% rated load", "Empty car weight + 40% rated load", "Empty car weight + 60% rated load"],
+                    answer: 2,
+                    explanation: "The counterweight typically equals the weight of an empty car plus 40% of the rated live load."
+                },
+                {
+                    question: "Which building type would typically use geared traction elevators?",
+                    options: ["Low-Rise buildings (1-3 stories)", "Mid-Rise buildings (4-11 stories)", "High-Rise buildings (12+ stories)", "All of the above"],
+                    answer: 1,
+                    explanation: "Mid-rise buildings (4-11 stories) typically use geared traction elevators."
+                },
+                {
+                    question: "What is the main advantage of machine-room-less elevators?",
+                    options: ["Higher speed", "Lower cost", "Space saving", "Higher capacity"],
+                    answer: 2,
+                    explanation: "Machine-room-less elevators save space by eliminating the need for a dedicated machine room above the elevator shaft."
+                },
+                {
+                    question: "Which elevator type is often used in construction areas?",
+                    options: ["Hydraulic Elevator", "Traction Elevator", "Climbing Elevator", "Pneumatic Elevator"],
+                    answer: 2,
+                    explanation: "Climbing elevators hold their own power device and are often used in work and construction areas."
+                },
+                {
+                    question: "What is the recommended minimum width for passenger elevator lobbies?",
+                    options: ["2.4 meters", "3.0 meters", "3.6 meters", "4.2 meters"],
+                    answer: 2,
+                    explanation: "The recommended minimum width for passenger elevator lobbies is 3.6 meters (12 feet)."
+                },
+                {
+                    question: "Which class of freight elevator loading is for motor vehicles?",
+                    options: ["Class A", "Class B", "Class C1", "Class C3"],
+                    answer: 1,
+                    explanation: "Class B freight elevator loading is for motor vehicles, based on a load of 30psf of net inside platform area."
+                },
+                {
+                    question: "What is the purpose of compensation cables in elevators?",
+                    options: ["To provide emergency power", "To compensate for hoist rope weight", "To assist in door operation", "To provide safety braking"],
+                    answer: 1,
+                    explanation: "Compensation cables are attached to the bottom of counterweights and the car to compensate for the hoist rope weight."
+                },
+                {
+                    question: "Which roping arrangement provides a mechanical advantage of 2?",
+                    options: ["1:1 Single Wrap", "1:1 Double Wrap", "2:1 Roping", "Underslung Roping"],
+                    answer: 2,
+                    explanation: "The 2:1 roping has a mechanical advantage of 2, meaning the ropes move twice as fast as the car."
+                },
+                {
+                    question: "What is the recommended clear opening width for elevator doors in commercial installations?",
+                    options: ["0.91 meters (3 feet)", "1.07 meters (3 ft-6 in)", "1.22 meters (4 feet)", "1.37 meters (4 ft-6 in)"],
+                    answer: 1,
+                    explanation: "A clear opening of 1.07 meters (3 ft-6 in) is used in most commercial installations to permit simultaneous loading and unloading."
+                },
+                {
+                    question: "Which control system is most common in modern elevators?",
+                    options: ["Single Automatic Operation", "Collective Control", "Selective Collective Operation", "Group Automatic Operation"],
+                    answer: 2,
+                    explanation: "Selective collective operation is the most common system, where the elevator remembers and answers calls in one direction then reverses."
+                },
+                {
+                    question: "What does the PVT sensor measure in an elevator system?",
+                    options: ["Door position", "Car weight", "Velocity of the drive sheave", "Air pressure"],
+                    answer: 2,
+                    explanation: "PVT (Primary Velocity Transducer) senses the velocity of the drive sheave."
+                },
+                {
+                    question: "Which component is used to restrict access to specific floors?",
+                    options: ["Hall Buttons", "Key Controls", "Emergency Stop Button", "Registration Panel"],
+                    answer: 1,
+                    explanation: "Key controls may be used in place of or in conjunction with pushbuttons to restrict access to a floor."
+                },
+                {
+                    question: "What is the primary function of an elevator controller?",
+                    options: ["To move the elevator up and down", "To open and close doors", "To process signals and operate system components", "To provide emergency power"],
+                    answer: 2,
+                    explanation: "The primary function of the elevator controller is to receive and process signals to operate all components of the elevator system."
+                },
+                {
+                    question: "Which controller technology is most suitable for complex elevator systems?",
+                    options: ["Relay-based Controller", "Solid-State Logic Technology", "PLC Controller", "Manual Controller"],
+                    answer: 2,
+                    explanation: "PLC (Programmable Logic Controller) is most suitable for complex elevator systems as it can handle all lift types, speeds, and group sizes."
+                },
+                {
+                    question: "What does 'interval' refer to in elevator service quality?",
+                    options: ["Time between car departures from lobby", "Time spent waiting in lobby", "Time for a round trip", "Time to reach destination floor"],
+                    answer: 0,
+                    explanation: "Interval refers to the average time between departure of cars from the lobby."
+                },
+                {
+                    question: "What is the recommended floor space per person in elevator lobbies during peak periods?",
+                    options: ["0.3 square meters", "0.5 square meters", "0.7 square meters", "1.0 square meter"],
+                    answer: 1,
+                    explanation: "Not less than 0.5 square meters floor space per person should be provided at peak periods for waiting passengers."
+                },
+                {
+                    question: "What is the maximum recommended distance from elevator banks to functional areas?",
+                    options: ["30 meters", "45 meters", "60 meters", "75 meters"],
+                    answer: 1,
+                    explanation: "The distance from elevator banks to the most distant functional areas should not exceed 45 meters."
+                },
+                {
+                    question: "Which requirement is essential for a fireman's lift?",
+                    options: ["Glass walls", "Pneumatic operation", "Break-glass key switch", "Wooden doors"],
+                    answer: 2,
+                    explanation: "A break-glass key switch at the ground floor is an essential requirement for a fireman's lift."
+                },
+                {
+                    question: "What is the purpose of separating elevator cars with steel 'I' beams?",
+                    options: ["Structural support", "To avoid the piston effect", "Fire separation", "Aesthetic reasons"],
+                    answer: 1,
+                    explanation: "Separating cars with steel 'I' beams avoids the 'piston effect' and its negative impact on ride quality and noise."
+                },
+                {
+                    question: "Which elevator arrangement has the counterweight located at one side?",
+                    options: ["Arrangement A", "Arrangement B", "Arrangement C", "Arrangement D"],
+                    answer: 2,
+                    explanation: "Arrangement C has the car with side opening door and the counterweight located at one side."
+                },
+                {
+                    question: "What is the minimum car internal height requirement for a fireman's lift?",
+                    options: ["1800 mm", "2000 mm", "2200 mm", "2400 mm"],
+                    answer: 1,
+                    explanation: "A fireman's lift requires minimum internal dimensions of 1100mm(W) x 1400mm(D) x 2000mm(H)."
+                },
+                {
+                    question: "Which factor is NOT considered in elevator selection?",
+                    options: ["Adequate service for building usage", "Economics of selection", "Architectural integration", "Color of the car interior"],
+                    answer: 3,
+                    explanation: "While important for aesthetics, the color of the car interior is not a primary factor in elevator selection compared to service, economics, and integration."
+                },
+                {
+                    question: "What is the term for the maximum number of passengers that can be handled in 5 minutes?",
+                    options: ["Interval", "Round-trip time", "Handling capacity", "Registration time"],
+                    answer: 2,
+                    explanation: "Handling capacity indicates the maximum number of passengers that can be handled in a given period, usually 5 minutes."
+                },
+                {
+                    question: "Which building type typically has the highest population density?",
+                    options: ["Prestige offices", "Single tenancy offices", "Low-cost housing", "Hospitals"],
+                    answer: 1,
+                    explanation: "Single tenancy offices have a population density of 90-110 sq ft per person, which is higher than other options."
+                },
+                {
+                    question: "What is the typical speed range for freight elevators?",
+                    options: ["0.25-1.00 m/s", "1.00-2.50 m/s", "2.50-4.00 m/s", "4.00-6.00 m/s"],
+                    answer: 0,
+                    explanation: "Freight elevator speeds are generally between 0.25 and 1.00 m/s (50-200 fpm)."
+                },
+                {
+                    question: "Which door type provides the fastest closing time?",
+                    options: ["Single slide door", "Two-speed door", "Center opening door", "All have similar closing times"],
+                    answer: 2,
+                    explanation: "Center opening doors provide the fastest closing time within the energy limitation of 7 ft-lbs kinetic energy."
+                },
+                {
+                    question: "What is the recommended car capacity for a high-rise office building?",
+                    options: ["2000 lbs", "2500 lbs", "3500 lbs", "5000 lbs"],
+                    answer: 2,
+                    explanation: "High-rise office buildings typically use 3500 lb capacity cars for rises above 275 feet."
+                },
+                {
+                    question: "Which device causes elevator doors to reopen when meeting an obstruction?",
+                    options: ["Governor", "Safety edge device", "PVT sensor", "Magnetic brake"],
+                    answer: 1,
+                    explanation: "All automatic elevators are required to have a safety edge device on the car doors that causes doors to reopen when meeting an obstruction."
+                },
+                {
+                    question: "What is the primary purpose of the governor in an elevator system?",
+                    options: ["To control door operation", "To limit car to safe speeds", "To measure car position", "To regulate power consumption"],
+                    answer: 1,
+                    explanation: "A governor limits the car to safe speeds and is mounted on or near the elevator machine."
+                },
+                {
+                    question: "Which value of architecture is concerned with 'art' and 'transformation'?",
+                    options: ["FIRMITAS", "UTILITAS", "VENUSTAS", "FUNCTIONALITAS"],
+                    answer: 2,
+                    explanation: "VENUSTAS represents the art value of architecture, which is about transformation."
+                },
+                {
+                    question: "What is the main consideration for vertical transportation equipment selection?",
+                    options: ["Color matching with building", "Dimensions according to building type", "Brand reputation", "Warranty length"],
+                    answer: 1,
+                    explanation: "Vertical transportation equipment have different dimensions and uses according to building type & number of users."
+                },
+                {
+                    question: "Which characteristic is part of the ideal performance of an elevator installation?",
+                    options: ["Minimum waiting time", "Maximum speed", "Luxurious interior", "Advanced technology"],
+                    answer: 0,
+                    explanation: "Ideal performance includes providing minimum waiting time for a car at any floor level."
+                },
+                {
+                    question: "What is the travel distance limitation for non-telescoping hydraulic elevators?",
+                    options: ["About 20 feet", "About 40 feet", "About 60 feet", "About 80 feet"],
+                    answer: 0,
+                    explanation: "Non-telescoping (single stage) hydraulic elevators only allow about 20 feet of travel distance."
+                },
+                {
+                    question: "Which type of elevator is suitable for existing homes due to compact design?",
+                    options: ["Traction elevator", "Hydraulic elevator", "Pneumatic elevator", "Climbing elevator"],
+                    answer: 2,
+                    explanation: "Pneumatic elevators are especially ideal for existing homes due to their compact design because excavating a pit and hoist way are not required."
+                },
+                {
+                    question: "What is the typical car speed for a mid-rise apartment building?",
+                    options: ["100 fpm", "200 fpm", "300 fpm", "400 fpm"],
+                    answer: 1,
+                    explanation: "Mid-rise apartments (76-125 ft rise) typically use elevator speeds of 200 fpm."
+                },
+                {
+                    question: "Which factor does NOT affect freight elevator performance?",
+                    options: ["Size of load", "Type of load", "Color of load", "Method of loading"],
+                    answer: 2,
+                    explanation: "The color of the load does not affect freight elevator performance, unlike size, type, and method of loading."
+                },
+                {
+                    question: "What is the primary advantage of destination control systems?",
+                    options: ["Lower cost", "Faster installation", "Reduced waiting time", "No need to select floor inside elevator"],
+                    answer: 3,
+                    explanation: "In destination control systems, passengers register their destination floor at the lobby, eliminating the need to input the destination floor in the elevator."
+                },
+                {
+                    question: "Which sensor is used to detect people entering or leaving the elevator?",
+                    options: ["Weight sensor", "Infrared sensor", "Magnetic sensor", "PVT sensor"],
+                    answer: 1,
+                    explanation: "Infrared sensors are used to detect people entering or leaving the elevator."
+                },
+                {
+                    question: "What is the function of the emergency bell in an elevator?",
+                    options: ["Signal arrival at floor", "Warn of excess load", "Alert people someone is trapped", "Indicate direction of travel"],
+                    answer: 2,
+                    explanation: "The emergency bell is used to alert people outside of the elevator shaft that someone is trapped inside the elevator cab."
+                },
+                {
+                    question: "Which roping system is commonly used for machine-room-less lifts?",
+                    options: ["1:1 Single wrap", "1:1 Double wrap", "2:1 Double wrap", "2:1 Single wrap"],
+                    answer: 3,
+                    explanation: "2:1 Single wrap roping is used for machine-room-less lifts according to the Mitsubishi reference."
+                },
+                {
+                    question: "What is the purpose of the apron in elevator components?",
+                    options: ["Decorative element", "Safety device at landing", "Part of the door mechanism", "Counterweight guide"],
+                    answer: 1,
+                    explanation: "The apron is a safety device located at the landing to prevent objects from falling into the shaft."
+                },
+                {
+                    question: "Which building type typically requires the highest percent handling capacity?",
+                    options: ["Prestige apartments", "Office buildings", "Hospitals", "Hotels"],
+                    answer: 1,
+                    explanation: "Office buildings require 11.5-16% handling capacity, which is generally higher than residential or hotel buildings."
+                },
+                {
+                    question: "What is the main disadvantage of relay-based elevator controllers?",
+                    options: ["High power consumption", "Difficulty troubleshooting", "Limited speed capability", "All of the above"],
+                    answer: 3,
+                    explanation: "Relay-based controllers have higher power consumption, can be difficult to troubleshoot, and are limited to speeds up to 1 m/s."
+                },
+                {
+                    question: "Which factor is most important in determining elevator service quality?",
+                    options: ["Car interior luxury", "Lobby waiting time", "Brand name", "Color scheme"],
+                    answer: 1,
+                    explanation: "Lobby waiting time (interval) is a primary criterion for determining elevator service quality."
+                }
+            ];
+
+            // Quiz state variables
+            let currentQuestion = 0;
+            let score = 0;
+            let userAnswers = new Array(quizData.length).fill(null);
+
+            // DOM elements
+            const quizContainer = document.getElementById('quiz-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const scoreElement = document.getElementById('score');
+            const progressElement = document.getElementById('progress');
+            const resultsElement = document.getElementById('results');
+            const finalScoreElement = document.getElementById('final-score');
+            const performanceMessageElement = document.getElementById('performance-message');
+            const restartBtn = document.getElementById('restart-btn');
+
+            // Initialize quiz
+            function initQuiz() {
+                showQuestion();
+                updateProgress();
+                
+                // Event listeners
+                prevBtn.addEventListener('click', showPreviousQuestion);
+                nextBtn.addEventListener('click', showNextQuestion);
+                restartBtn.addEventListener('click', restartQuiz);
+            }
+
+            // Show current question
+            function showQuestion() {
+                const question = quizData[currentQuestion];
+                
+                // Create question HTML
+                const questionHTML = `
+                    <div class="question">
+                        <div class="question-number">Question ${currentQuestion + 1} of ${quizData.length}</div>
+                        <div class="question-text">${question.question}</div>
+                        <ul class="options">
+                            ${question.options.map((option, index) => `
+                                <li class="option ${userAnswers[currentQuestion] === index ? 'selected' : ''}" data-index="${index}">
+                                    ${option}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <div class="explanation ${userAnswers[currentQuestion] !== null ? 'show' : ''}">
+                            ${userAnswers[currentQuestion] !== null ? question.explanation : ''}
+                        </div>
+                    </div>
+                `;
+                
+                quizContainer.innerHTML = questionHTML;
+                
+                // Add event listeners to options
+                const options = document.querySelectorAll('.option');
+                options.forEach(option => {
+                    option.addEventListener('click', selectOption);
+                });
+                
+                // Update navigation buttons
+                updateNavigation();
+            }
+
+            // Select an option
+            function selectOption(e) {
+                const selectedOption = e.currentTarget;
+                const selectedIndex = parseInt(selectedOption.getAttribute('data-index'));
+                
+                // Mark this question as answered
+                userAnswers[currentQuestion] = selectedIndex;
+                
+                // Check if answer is correct
+                const isCorrect = selectedIndex === quizData[currentQuestion].answer;
+                
+                // Update UI
+                const options = document.querySelectorAll('.option');
+                options.forEach(option => {
+                    option.classList.remove('selected', 'correct', 'incorrect');
+                });
+                
+                selectedOption.classList.add('selected');
+                
+                // Show correct answer
+                options[quizData[currentQuestion].answer].classList.add('correct');
+                
+                if (!isCorrect) {
+                    selectedOption.classList.add('incorrect');
+                } else {
+                    // Update score if not already scored
+                    if (userAnswers[currentQuestion] !== selectedIndex) {
+                        score++;
+                        scoreElement.textContent = score;
+                    }
+                }
+                
+                // Show explanation
+                document.querySelector('.explanation').classList.add('show');
+                
+                // Enable next button
+                nextBtn.disabled = false;
+            }
+
+            // Show next question
+            function showNextQuestion() {
+                if (currentQuestion < quizData.length - 1) {
+                    currentQuestion++;
+                    showQuestion();
+                    updateProgress();
+                } else {
+                    showResults();
+                }
+            }
+
+            // Show previous question
+            function showPreviousQuestion() {
+                if (currentQuestion > 0) {
+                    currentQuestion--;
+                    showQuestion();
+                    updateProgress();
+                }
+            }
+
+            // Update navigation buttons state
+            function updateNavigation() {
+                prevBtn.disabled = currentQuestion === 0;
+                
+                if (currentQuestion === quizData.length - 1) {
+                    nextBtn.textContent = 'Finish Quiz';
+                } else {
+                    nextBtn.textContent = 'Next';
+                }
+                
+                // Disable next button if current question not answered
+                nextBtn.disabled = userAnswers[currentQuestion] === null;
+            }
+
+            // Update progress bar
+            function updateProgress() {
+                const progress = ((currentQuestion + 1) / quizData.length) * 100;
+                progressElement.style.width = `${progress}%`;
+            }
+
+            // Show results
+            function showResults() {
+                // Calculate final score
+                score = userAnswers.reduce((total, answer, index) => {
+                    return answer === quizData[index].answer ? total + 1 : total;
+                }, 0);
+                
+                finalScoreElement.textContent = score;
+                
+                // Performance message
+                const percentage = (score / quizData.length) * 100;
+                let message;
+                
+                if (percentage >= 90) {
+                    message = "Excellent! You have a strong understanding of elevator systems.";
+                } else if (percentage >= 70) {
+                    message = "Good job! You have a solid knowledge of elevator systems.";
+                } else if (percentage >= 50) {
+                    message = "Not bad! Review the materials to improve your knowledge.";
+                } else {
+                    message = "Keep studying! Review the lecture materials and try again.";
+                }
+                
+                performanceMessageElement.textContent = message;
+                
+                // Hide quiz and show results
+                document.getElementById('quiz-container').style.display = 'none';
+                document.querySelector('.navigation').style.display = 'none';
+                document.querySelector('.progress-bar').style.display = 'none';
+                resultsElement.style.display = 'block';
+            }
+
+            // Restart quiz
+            function restartQuiz() {
+                currentQuestion = 0;
+                score = 0;
+                userAnswers = new Array(quizData.length).fill(null);
+                
+                scoreElement.textContent = score;
+                progressElement.style.width = '0%';
+                
+                document.getElementById('quiz-container').style.display = 'block';
+                document.querySelector('.navigation').style.display = 'flex';
+                document.querySelector('.progress-bar').style.display = 'block';
+                resultsElement.style.display = 'none';
+                
+                showQuestion();
+            }
+
+            // Initialize the quiz
+            initQuiz();
+        });
+    </script>
+</body>
+</html>
